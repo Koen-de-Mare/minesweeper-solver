@@ -24,8 +24,10 @@ FALSE = 0
 
 def cell_knowledge_as_character(cell_knowledge: int) -> str:
     if cell_knowledge == CELL_FLAGGED:
-        return 'X'
-    elif 0 <= cell_knowledge <= 8:
+        return '\033[91mX\033[00m'
+    elif cell_knowledge == 0:
+        return '\033[92m0\033[00m'
+    elif 0 < cell_knowledge <= 8:
         return str(cell_knowledge)
     elif cell_knowledge == CELL_UNKNOWN:
         return '_'
@@ -96,7 +98,7 @@ class Solver:
                     cell_knowledge_as_character(
                         self.knowledge[column, row]
                     ),
-                    end='')
+                    end=' ')
             print('') # newline after end of row
         print('-----')
 
@@ -257,13 +259,13 @@ class Solver:
 
             
 if __name__ == '__main__':
+    # set up game and solver
+    solver = Solver(50, 50, 400)
 
-    print('Hello, world')
-
-    solver = Solver(10, 10, 10)
-
-    solver.sweep_unknown_cell(1,1)
+    # initial guess
+    solver.sweep_unknown_cell(10,10)
     solver.print_grid()
 
+    # solve direct implications of first guess
     solver.process_queue()
     solver.print_grid()
