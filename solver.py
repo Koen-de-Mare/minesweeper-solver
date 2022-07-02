@@ -43,12 +43,11 @@ class SolverContext:
 
         self.knowledge = np.full((width,height), CELL_UNKNOWN)
 
+    def is_in_bounds(self, column: int, row: int):
+        return (column >= 0) && (row >= 0) && (column < self.width) && (row < self.height)
+        
     def sweep_cell(self, column: int, row: int):
-        assert(column >= 0)
-        assert(row >= 0)
-        assert(column < self.width)
-        assert(row < self.height)
-
+        assert(is_in_bounds(self, column, row))
         
         current_cell_knowledge = self.knowledge[column, row]
         if current_cell_knowledge == CELL_MINE:
@@ -77,6 +76,88 @@ class SolverContext:
                     end='')
             print('') # newline after end of row
         print('-----')
+
+    def neighbours(column: int, row: int):
+        assert(is_in_bounds(self, column, row))
+
+        # all neighbours
+        surrounds_list = []
+        surrounds_list.push((column + 1, row))     #         east
+        surrounds_list.push((column + 1, row - 1)) # north - east
+        surrounds_list.push((column,     row - 1)) # north
+        surrounds_list.push((column - 1, row - 1)) # north - west
+        surrounds_list.push((column - 1, row))     #         west
+        surrounds_list.push((column - 1, row + 1)) # south - west
+        surrounds_list.push((column,     row + 1)) # south
+        surrounds_list.push((column + 1, row + 1)) # south - east
+
+        # filter neighbours for being in bounds
+        surrounds_list_2 = list(filter(lambda a: self.is_in_bounds(a.0, a.1), surrounds_list))
+
+        print(surrounds_list_2)
+                                
+        return surrounds_list_2
+        
+
+def check_cell(solver_context: SolverContext, column: int, row: int):
+    '''
+    check if an implication on the surrounding cells can be made
+    '''
+
+    assert(solver_context.is_in_bounds(column, row))
+    
+    current_cell_knowledge = solver_context.knowledge[column, row]
+
+    if current_cell_knowledge == CELL_MINE:
+        # no information to work with
+    elif current_cell_knowledge == CELL_UNKNOWN:
+        # no information to work with
+    elif 0 <= current_cell_knowledge <= 8:
+        N_neighbour_mines = current_cell_knowledge
+
+        # count number of surrouning cells that we know have a mine
+        # count number of surrounding cells that we don't know the knowledge of; the cells that might still contain a mine
+        neighbour_list = solver_context.neighbours(column, row)
+
+        N_unknown_neighbours = 0
+        N_found_neighbour_mines = 0
+
+        for neighbour in neithbour_list:
+            (current_neighbour_column, current_neighbour_row) = neighbour
+            assert(solver_context.is_in_bounds(current_neighbour_column, current_neighbour_row)
+            current_neighbour_knowledge = solver_context.knowledge[current_neighbour_column, current_neightbour_row]
+            if current_neighbour_knowledge == CELL_MINE:
+                N_found_neighbour_mines += 1
+            elif current_neighbour_knowledge == CELL_UNKNOWN:
+                N_unknown_neighbours += 1
+            elif:
+                assert(0 <= current_neighbour_knowledge <= 8)
+
+        N_hidden_mines = N_neighbour_mines - N_found_neighbour_mines
+
+        if N_hidden_mines == 0:
+            # all unknown neighbours must be safe
+
+            # TODO -------------------------------------------------------------------------------------------------------------------------------------------------
+            # sweep all unknown neighbours
+            # mark all unknown neighbours and neighbours of newly sweeped neighbours as dirty
+                   
+        elif N_hidden_mines < N_unknown_neighbours:
+            # nothing can be inferred from this information
+        elif N_hidden_mines == N_unknown_neighbours:
+            # all unknown neighbours contain mines
+
+            # TODO -------------------------------------------------------------------------------------------------------------------------------------------------
+            # flag all unknown neighbours as mines
+            # mark all neighbours of newly flagged mines as dirty
+            
+        else:
+            print('INVALID STATE')
+            assert(False)
+                   
+    else:
+        print('INVALID CELL KNOWLEDGE STATE: {}'.format(current_cell_knowledge))
+
         
 if __name__ == '__main__':
 
