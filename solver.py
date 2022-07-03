@@ -55,41 +55,14 @@ class Solver:
         # tracks if information regarding cells has been changed since they were last checked
         self.is_dirty = np.full((width,height), FALSE)
 
-        # queue of dirty cells to be checked later
+        # queue of dirty cells to make checking them simpler
         self.dirty_queue = []
 
         
     def is_in_bounds(self, column: int, row: int):
         return (column >= 0) and (row >= 0) and (column < self.width) and (row < self.height)
-    
 
-    def sweep_unknown_cell(self, column: int, row: int):
-        '''
-        Will try to sweep the cell.
-        Assumes that previous code has made sure that this cell has not been sweeped before and does not contain a mine.
-        '''
-        assert(self.is_in_bounds(column, row))
-        assert(self.knowledge[column, row] == CELL_UNKNOWN)
 
-        # PERFORM THE SWEEP
-        self.knowledge[column, row] = self.mine_field.sweep_cell(column, row)
-
-        # mark this and surrounding cells as dirty
-        self.mark_neighbourhood_dirty(column, row)
-
-        
-    def flag_unknown_cell(self, column: int, row: int):
-        '''
-        Flags the cell for containing mine
-        '''
-        assert(self.is_in_bounds(column, row))
-        assert(self.knowledge[column, row] == CELL_UNKNOWN)
-
-        self.knowledge[column, row] = CELL_FLAGGED
-
-        self.mark_neighbourhood_dirty(column, row)
-
-        
     def print_grid(self):
         print('-----')
         for row in range(self.height):
@@ -128,8 +101,8 @@ class Solver:
     
     def count_neighbours(self, column: int, row: int) -> (int, int):
         '''
-        count number of surrouning cells that we know have a mine
-        count number of surrounding cells that we don't know the knowledge of; the cells that might still contain a mine
+        Count number of surrouning cells that we know have a mine.
+        Count number of surrounding cells that we don't know the knowledge of; the cells that might still contain a mine.
         '''
         assert(self.is_in_bounds(column, row))
         
@@ -153,7 +126,36 @@ class Solver:
 
         return (N_unknown_neighbours, N_found_neighbour_mines)
 
-    
+
+    # functions that modify the knowledge state of the solver
+    # Because new knowledge has been obtained they are responsible for marking adjacent cells as dirty
+    def sweep_unknown_cell(self, column: int, row: int):
+        '''
+        Will try to sweep the cell.
+        Assumes that previous code has made sure that this cell has not been sweeped before and does not contain a mine.
+        '''
+        assert(self.is_in_bounds(column, row))
+        assert(self.knowledge[column, row] == CELL_UNKNOWN)
+
+        # PERFORM THE SWEEP
+        self.knowledge[column, row] = self.mine_field.sweep_cell(column, row)
+
+        # mark this and surrounding cells as dirty
+        self.mark_neighbourhood_dirty(column, row)
+
+        
+    def flag_unknown_cell(self, column: int, row: int):
+        '''
+        Flags the cell for containing mine
+        '''
+        assert(self.is_in_bounds(column, row))
+        assert(self.knowledge[column, row] == CELL_UNKNOWN)
+
+        self.knowledge[column, row] = CELL_FLAGGED
+
+        self.mark_neighbourhood_dirty(column, row)
+
+        
     def sweep_unknown_neighbours(self, column: int, row: int):
         '''
         Sweeps all neighbours of the cell at (column, row) that are currently unknown.
@@ -185,6 +187,10 @@ class Solver:
 
         
     def mark_dirty(self, column: int, row: int):
+        '''
+        Set this cell to dirty such that it will be checked soon
+        '''
+        
         assert(self.is_in_bounds(column, row))
 
         self.is_dirty[column, row] = TRUE
@@ -192,6 +198,11 @@ class Solver:
 
         
     def mark_neighbourhood_dirty(self, column: int, row: int):
+        '''
+        Set the neighbouring cells to dirty such that they will be checked soon.
+        Usefull to call this funtion when knowledge about some cell has been filled in
+        '''
+
         assert(self.is_in_bounds(column, row))
         
         self.mark_dirty(column, row)
@@ -241,6 +252,7 @@ class Solver:
         else:
             print('INVALID CELL KNOWLEDGE STATE: {}'.format(current_cell_knowledge))
 
+        self.is_dirty[column, row] = FALSE
 
     def process_queue(self):
         '''
@@ -249,7 +261,6 @@ class Solver:
         while len(self.dirty_queue) > 0:
             (column, row) = self.dirty_queue.pop(0)
             self.check_cell(column, row)
-            self.is_dirty[column, row] = FALSE
 
         # check if the self.is_dirty array is indeed "cleared" to everything being clean
         total = np.sum(self.is_dirty)
@@ -260,10 +271,11 @@ class Solver:
             
 if __name__ == '__main__':
     # set up game and solver
-    solver = Solver(50, 50, 400)
+    N = 100
+    solver = Solver(90, N, 15 * N)
 
     # initial guess
-    solver.sweep_unknown_cell(10,10)
+    solver.sweep_unknown_cell(3,3)
     solver.print_grid()
 
     # solve direct implications of first guess
