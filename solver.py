@@ -1,4 +1,5 @@
 from enum import Enum
+import random
 
 import numpy as np
 
@@ -254,6 +255,7 @@ class Solver:
 
         self.is_dirty[column, row] = FALSE
 
+        
     def process_queue(self):
         '''
         Will check all cells that are in the queue (including new ones that will be added to the queue in the process)
@@ -269,9 +271,25 @@ class Solver:
             assert(False)
 
             
+    def sample_random_unknown(self) -> (int, int):
+        unknown_list = []
+        for row in range(self.height):
+            for column in range(self.width):
+                if self.knowledge[column, row] == CELL_UNKNOWN:
+                    unknown_list.append((column, row))
+
+        random_index = random.randrange(0, len(unknown_list))
+
+        return unknown_list[random_index]
+
+
+    def solve(self):
+        # TODO
+        
+        
 if __name__ == '__main__':
     # set up game and solver
-    N = 100
+    N = 10
     solver = Solver(90, N, 15 * N)
 
     # initial guess
