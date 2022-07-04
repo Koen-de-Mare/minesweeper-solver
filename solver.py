@@ -284,13 +284,14 @@ class Solver:
 
 
     def solve(self):
+        pass
         # TODO
         
         
 if __name__ == '__main__':
     # set up game and solver
-    N = 10
-    solver = Solver(90, N, 15 * N)
+    N = 1000
+    solver = Solver(90, N, 10 * N)
 
     # initial guess
     solver.sweep_unknown_cell(3,3)
