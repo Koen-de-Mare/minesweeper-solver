@@ -331,7 +331,7 @@ class Solver:
         # note that new items might be appended to the queue in the process
         # as any cell can only be flagged 8x (8 neighbours) and the board is finite, the process must terminate
         while len(self.dirty_queue) > 0:
-            (column, row) = self.dirty_queue.pop(0)
+            (column, row) = self.dirty_queue.pop()
             self.check_cell(column, row)
 
         # check if the self.is_dirty array is indeed "cleared" to everything being clean
@@ -366,7 +366,7 @@ class Solver:
             return (True, unknown_list[random_index][0], unknown_list[random_index][1])
 
 
-    def solve(self):
+    def solve(self, print_knowledge: bool = True):
         '''
         Plays the game.
         '''
@@ -376,7 +376,8 @@ class Solver:
             (found_unknown, guess_column, guess_row) = self.sample_random_unknown()
             if found_unknown:
                 # print current state
-                self.print_grid(guess_column, guess_row)
+                if print_knowledge:
+                    self.print_grid(guess_column, guess_row)
 
                 # make a guess, could raise an exception when sweeping a mine
                 try:
@@ -391,5 +392,6 @@ class Solver:
             else:
                 is_running = False
 
-        self.print_grid()
+        if print_knowledge:
+            self.print_grid()
         print("SOLVED THE GAME!")        
